@@ -57,9 +57,9 @@ jobs:
           set -x
           mkdir -p output config
           cat > config/config.toml <<'EOF'
-          [customizations.installer]
-          [customizations.filesystem]
-          rootfs = "btrfs"
+          [[customizations.filesystem]]
+          mountpoint = "/"
+          minsize = "10GiB"
           EOF
           sudo podman run --rm --privileged --security-opt label=type:unconfined_t \
             -v ./output:/output \
@@ -67,7 +67,7 @@ jobs:
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type iso --config /config.toml --rootfs btrfs stackforge-mvp1:ci
-          ls -lh output/
+          ls -lh output/ || echo "BIB produced no ISO - check log above"
       - uses: actions/upload-artifact@v5
         with:
           name: stackforge-mvp1-iso
