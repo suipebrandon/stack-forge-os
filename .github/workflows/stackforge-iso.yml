@@ -58,15 +58,17 @@ jobs:
           mkdir -p output config
           cat > config/config.toml <<'EOF'
           [customizations.installer]
+          [customizations.filesystem]
+          rootfs = "btrfs"
           EOF
           sudo podman run --rm --privileged --security-opt label=type:unconfined_t \
             -v ./output:/output \
             -v ./config/config.toml:/config.toml:ro \
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             quay.io/centos-bootc/bootc-image-builder:latest \
-            --type iso --config /config.toml --local stackforge-mvp1:ci
+            --type iso --config /config.toml --rootfs btrfs stackforge-mvp1:ci
           ls -lh output/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: stackforge-mvp1-iso
           path: os/base-image/output/*.iso
