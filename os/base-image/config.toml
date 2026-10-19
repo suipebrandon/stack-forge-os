@@ -1,0 +1,4 @@
+# BIB expects filesystem customizations as an array of tables, not a single table/map.
+[[customizations.filesystem]]
+mountpoint = "/"
+minsize = "10GiB"
