@@ -61,10 +61,12 @@ jobs:
           mountpoint = "/"
           minsize = "10GiB"
           EOF
+          sudo podman images
+          # NOTE: no storage mount — BIB reuses host store automatically (same root user).
+          # Absolute paths required so BIB resolves mounts, not image name.
           sudo podman run --rm --privileged --security-opt label=type:unconfined_t \
-            -v ./output:/output \
-            -v ./config/config.toml:/config.toml:ro \
-            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            -v "$PWD/output":/output \
+            -v "$PWD/config/config.toml":/config.toml:ro \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type iso --config /config.toml --rootfs btrfs stackforge-mvp1:ci
           ls -lh output/ || echo "BIB produced no ISO - check log above"
