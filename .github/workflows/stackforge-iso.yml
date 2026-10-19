@@ -6,9 +6,9 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install pytest && python -m pytest testing/test_resolver.py -v
@@ -16,26 +16,44 @@ jobs:
 
   build-iso:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - name: Free disk space (BIB needs ~10 GB)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL 2>/dev/null || true
+          sudo docker system prune -af 2>/dev/null || true
+          df -h
+      - name: Install podman
+        run: |
+          set -x
+          sudo apt-get update
+          sudo apt-get install -y podman
+          sudo podman info
       - name: Build bootc container
         working-directory: os/base-image
         run: |
-          sudo apt-get update && sudo apt-get install -y podman
-          sudo podman build -t ghcr.io/${{ github.repository_owner }}/stackforge-mvp1:${{ github.sha }} -f Containerfile .
+          set -x
+          sudo podman build -t stackforge-mvp1:ci -f Containerfile .
+          sudo podman images
       - name: Build ISO with bootc-image-builder
         working-directory: os/base-image
         run: |
-          mkdir -p output
+          set -x
+          mkdir -p output config
+          cat > config/config.toml <<'EOF'
+          [customizations.installer]
+          EOF
           sudo podman run --rm --privileged --security-opt label=type:unconfined_t \
             -v ./output:/output \
+            -v ./config/config.toml:/config.toml:ro \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
             quay.io/centos-bootc/bootc-image-builder:latest \
-            --type iso ghcr.io/${{ github.repository_owner }}/stackforge-mvp1:${{ github.sha }}
+            --type iso --config /config.toml --local stackforge-mvp1:ci
           ls -lh output/
       - uses: actions/upload-artifact@v4
         with:
