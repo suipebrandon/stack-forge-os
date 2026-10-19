@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Stack Store Application Metadata",
+  "description": "Validates SRS FR-100..104 + example p.6. Resolver input.",
+  "type": "object",
+  "required": ["id", "name", "type", "runtime", "architecture", "compatibility", "sources", "version", "permissions"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9-_]+)+$" },
+    "name": { "type": "string", "minLength": 1 },
+    "type": { "enum": ["linux-app", "windows-app", "windows-game", "android-app", "web-app"] },
+    "runtime": { "enum": ["flatpak", "wine", "proton", "waydroid", "browser"] },
+    "architecture": { "type": "array", "items": { "enum": ["x86_64", "aarch64"] }, "minItems": 1 },
+    "compatibility": { "enum": ["verified", "supported", "community-tested", "experimental", "unsupported"] },
+    "sources": {
+      "type": "object",
+      "required": ["origin"],
+      "properties": {
+        "origin": { "type": "string" },
+        "flatpakRef": { "type": "string" },
+        "exeUrl": { "type": "string" },
+        "apkUrl": { "type": "string" },
+        "pwaUrl": { "type": "string" }
+      }
+    },
+    "version": { "type": "string" },
+    "permissions": { "type": "array", "items": { "type": "string" } }
+  },
+  "allOf": [
+    { "if": { "properties": { "type": { "const": "linux-app" } } }, "then": { "properties": { "runtime": { "const": "flatpak" } } } },
+    { "if": { "properties": { "type": { "const": "windows-game" } } }, "then": { "properties": { "runtime": { "const": "proton" } } } },
+    { "if": { "properties": { "type": { "const": "android-app" } } }, "then": { "properties": { "runtime": { "const": "waydroid" } } } },
+    { "if": { "properties": { "type": { "const": "web-app" } } }, "then": { "properties": { "runtime": { "const": "browser" } } } }
+  ]
+}

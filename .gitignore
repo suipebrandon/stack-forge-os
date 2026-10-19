@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+os/base-image/output/
+.pytest_cache/

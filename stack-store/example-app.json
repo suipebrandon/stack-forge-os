@@ -1,0 +1,11 @@
+{
+  "id": "com.example.calc",
+  "name": "Calc",
+  "type": "linux-app",
+  "runtime": "flatpak",
+  "architecture": ["x86_64"],
+  "compatibility": "verified",
+  "sources": { "origin": "flathub", "flatpakRef": "org.gnome.Calculator" },
+  "version": "1.0",
+  "permissions": ["network"]
+}

@@ -1,0 +1,43 @@
+name: stackforge-mvp1-iso
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pytest && python -m pytest testing/test_resolver.py -v
+      - run: python -c "import json; json.load(open('stack-store/app-schema.json')); print('schema JSON OK')"
+
+  build-iso:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build bootc container
+        working-directory: os/base-image
+        run: |
+          sudo apt-get update && sudo apt-get install -y podman
+          sudo podman build -t ghcr.io/${{ github.repository_owner }}/stackforge-mvp1:${{ github.sha }} -f Containerfile .
+      - name: Build ISO with bootc-image-builder
+        working-directory: os/base-image
+        run: |
+          mkdir -p output
+          sudo podman run --rm --privileged --security-opt label=type:unconfined_t \
+            -v ./output:/output \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type iso ghcr.io/${{ github.repository_owner }}/stackforge-mvp1:${{ github.sha }}
+          ls -lh output/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stackforge-mvp1-iso
+          path: os/base-image/output/*.iso

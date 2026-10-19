@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+# Stack Forge OS MVP-1 base image — bootc pattern (RUN ON LINUX ONLY)
+# Reuses Fedora Kinoite (KDE Plasma Atomic) — do not build DE/kernel from source.
+FROM quay.io/fedora-atomic-desktops/kinoite:41
+
+# Base tools (keep layer small for MVP-1; branding/config added in M2)
+RUN rpm-ostree install --idempotent \
+      greenboot greenboot-default-health-checks \
+      flatpak plasma-discover-flatpak-backend \
+      NetworkManager-wifi bluez pipewire wireplumber 2>/dev/null || \
+    dnf install -y greenboot flatpak NetworkManager-wifi bluez pipewire || true && \
+    systemctl enable greenboot-healthcheck greenboot-task-runner NetworkManager bluetooth sddm 2>/dev/null || true && \
+    ostree container commit || true
+
+LABEL org.stackforge.os="stack-forge-os" \
+      org.stackforge.version="mvp1" \
+      org.opencontainers.image.title="Stack Forge OS MVP-1"
+
