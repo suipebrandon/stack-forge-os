@@ -48,7 +48,7 @@ jobs:
         working-directory: os/base-image
         run: |
           set -x
-          sudo podman build -t stackforge-mvp1:ci -f Containerfile .
+          sudo podman build -t localhost/stackforge-mvp1:ci -f Containerfile .
           sudo podman images
       - name: Build ISO with bootc-image-builder
         timeout-minutes: 60
@@ -68,7 +68,7 @@ jobs:
             -v "$PWD/output":/output \
             -v "$PWD/config/config.toml":/config.toml:ro \
             quay.io/centos-bootc/bootc-image-builder:latest \
-            --type iso --config /config.toml --rootfs btrfs stackforge-mvp1:ci
+            --type iso --config /config.toml --rootfs btrfs localhost/stackforge-mvp1:ci
           ls -lh output/ || echo "BIB produced no ISO - check log above"
       - uses: actions/upload-artifact@v5
         with:

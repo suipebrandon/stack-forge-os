@@ -6,7 +6,7 @@ FROM quay.io/fedora/fedora-bootc:42
 
 # KDE Plasma desktop + base tools (keep layer small for MVP-1)
 RUN dnf install -y \
-      plasma-desktop sddm sddm-wayland \
+      plasma-desktop sddm \
       greenboot greenboot-default-health-checks \
       flatpak NetworkManager-wifi bluez pipewire wireplumber \
       && dnf clean all \
