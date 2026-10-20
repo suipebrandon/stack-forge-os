@@ -62,11 +62,13 @@ jobs:
           minsize = "10GiB"
           EOF
           sudo podman images
-          # NOTE: no storage mount — BIB reuses host store automatically (same root user).
-          # Absolute paths required so BIB resolves mounts, not image name.
+          sudo ls -la /var/lib/containers/storage/overlay 2>&1 | head -5 || echo "no overlay dir yet"
+          # Storage mount IS required (BIB error says so). localhost/ tag keeps
+          # image name parseable (fixes docker.io/library mis-parse from #125).
           sudo podman run --rm --privileged --security-opt label=type:unconfined_t \
             -v "$PWD/output":/output \
             -v "$PWD/config/config.toml":/config.toml:ro \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type iso --config /config.toml --rootfs btrfs localhost/stackforge-mvp1:ci
           ls -lh output/ || echo "BIB produced no ISO - check log above"

@@ -10,7 +10,9 @@ jobs:
           cd stack-forge-os/os/base-image
           sudo podman build -t ghcr.io/${{ github.repository }}/stackforge:${{ github.sha }} -f Containerfile .
           sudo podman run --rm --privileged --security-opt label=type:unconfined_t \
-            -v ./output:/output quay.io/centos-bootc/bootc-image-builder:latest \
+            -v ./output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            quay.io/centos-bootc/bootc-image-builder:latest \
             --type iso ghcr.io/${{ github.repository }}/stackforge:${{ github.sha }}
       - uses: actions/upload-artifact@v4
         with: { name: stackforge-iso, path: stack-forge-os/os/base-image/output/*.iso }

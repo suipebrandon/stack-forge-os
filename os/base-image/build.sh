@@ -4,6 +4,8 @@ set -euo pipefail
 IMAGE="ghcr.io/stackforge/stackforge-mvp1:latest"
 OUT="output"
 
+mkdir -p "$OUT"
+
 echo "[1/4] Building bootc container..."
 sudo podman build -t "$IMAGE" -f Containerfile .
 
@@ -13,6 +15,7 @@ syft "$IMAGE" -o spdx-json="$OUT/sbom.spdx.json" || echo "syft missing — dnf i
 echo "[3/4] Building ISO via bootc-image-builder..."
 sudo podman run --rm --privileged --security-opt label=type:unconfined_t \
   -v ./config.toml:/config.toml:ro -v ./$OUT:/output \
+  -v /var/lib/containers/storage:/var/lib/containers/storage \
   quay.io/centos-bootc/bootc-image-builder:latest \
   --type iso --config /config.toml "$IMAGE"
 
